@@ -44,6 +44,16 @@ check_for_function_exit_code() {
   fi
 }
 
+verify_ecr_image() {
+  # Try to describe the image to see if it exists
+  aws ecr describe-images \
+    --repository-name ${CF_STACK_NAME} \
+    --image-ids imageTag=latest \
+    --region ${STACK_REGION} > /dev/null 2>&1
+  
+  return $?
+}
+
 for var in "$@"
 do
   case "$var" in
@@ -62,7 +72,19 @@ do
       docker_login
       
       echo "Building and deploying Lambda image in region ${STACK_REGION}."
-        lambda_create_image
+      lambda_create_image
+      
+      echo "Waiting for Lambda image to be available in ECR..."
+      RETRY_COUNT=0
+      while ! verify_ecr_image && [ $RETRY_COUNT -lt 30 ]; do
+        sleep 2
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+      done
+      
+      if [ $RETRY_COUNT -eq 30 ]; then
+        echo "Error: Timed out waiting for Lambda image to be available in ECR"
+        exit 1
+      fi
 
       echo "Creating CloudFormation Stack in region ${STACK_REGION}."
         STACK_ID=$(aws cloudformation create-stack \
