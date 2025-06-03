@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 
-CF_STACK_NAME="llm-lex-chatbot"
+DEFAULT_STACK_NAME="llm-lex-chatbot"
+VERSION=""
+CF_STACK_NAME="${DEFAULT_STACK_NAME}"
+
+# Parse named parameters
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --version=*)
+      VERSION="${1#*=}"
+      CF_STACK_NAME="${DEFAULT_STACK_NAME}-${VERSION}"
+      shift
+      ;;
+    *)
+      COMMAND="$1"
+      shift
+      ;;
+  esac
+done
 
 get_account_params() {
   ACCOUNT_ID=$(aws sts get-caller-identity \
@@ -54,9 +71,7 @@ verify_ecr_image() {
   return $?
 }
 
-for var in "$@"
-do
-  case "$var" in
+case "$COMMAND" in
     init-env)
       get_account_params
       ecr_create_repo
@@ -139,5 +154,4 @@ do
       ;;
     *)
       ;;
-  esac
-done
+esac
