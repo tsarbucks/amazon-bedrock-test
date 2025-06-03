@@ -16,15 +16,11 @@ Resources:
     Properties: 
       DataSourceConfiguration: 
         S3Configuration: 
-          BucketName: !Ref WebDataS3Bucket
+          BucketName: "coda-bucket-2025"
       IndexId: !Ref KendraIndex
       Name: "KendraChatbotIndexDataSource"
       RoleArn: !GetAtt KendraRole.Arn
       Type: "S3"
-  WebDataS3Bucket:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      AccessControl: "Private"
   KendraRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -49,15 +45,11 @@ Resources:
             - Effect: "Allow"
               Action: 
                 - "s3:GetObject"
-              Resource: !Join 
-                - ''
-                - - 'arn:aws:s3:::'
-                  - !Ref WebDataS3Bucket
-                  - /*
+              Resource: "arn:aws:s3:::coda-bucket-2025/*"
             - Effect: "Allow"
               Action: 
                 - "s3:ListBucket"
-              Resource: !GetAtt WebDataS3Bucket.Arn
+              Resource: "arn:aws:s3:::coda-bucket-2025"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   OrchestratorRole:
@@ -158,41 +150,6 @@ Resources:
               ValueSelectionSetting:
                 ResolutionStrategy: ORIGINAL_VALUE
           Intents:
-            - Name: "PasswordReset"
-              Description: "Intent to reset password"
-              SampleUtterances:
-                - Utterance: "reset password"
-                - Utterance: "forgot my password"
-              IntentConfirmationSetting:
-                PromptSpecification:
-                  MessageGroupsList:
-                    - Message:
-                        PlainTextMessage:
-                          Value: "I have sent a password reset email. Anything else I can help with?"
-                  MaxRetries: 0
-                  AllowInterrupt: false
-                DeclinationResponse:
-                  MessageGroupsList:
-                    - Message:
-                        PlainTextMessage:
-                          Value: "Okay, I will not send a password reset email."
-                  AllowInterrupt: false
-              SlotPriorities:
-              - Priority: 1
-                SlotName: AccountEmail
-              Slots:
-                - Name: "AccountEmail"
-                  Description: "something"
-                  SlotTypeName: "AMAZON.EmailAddress"
-                  ValueElicitationSetting:
-                    SlotConstraint: "Required"
-                    PromptSpecification:
-                      MessageGroupsList:
-                        - Message:
-                            PlainTextMessage:
-                              Value: "I can help with that, what's your email?"
-                      MaxRetries: 0
-                      AllowInterrupt: false
             - Name: "FallbackIntent"
               Description: "Invoke Lambda when FallbackIntent gets hit"
               ParentIntentSignature: "AMAZON.FallbackIntent"

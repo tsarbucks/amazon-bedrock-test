@@ -22,15 +22,15 @@ retriever = AmazonKendraRetriever(
 
 if(MODEL_TYPE == "CLAUDE"):
     llm = Bedrock(
-        model_id="anthropic.claude-v2:1",
+        model_id="anthropic.claude-sonnet-4-20250514-v1:0",
         endpoint_url="https://bedrock-runtime." + REGION_NAME + ".amazonaws.com",
-        model_kwargs={"temperature": 0.7, "max_tokens_to_sample": 500}
+        model_kwargs={"temperature": 0.7, "max_tokens_to_sample": 4096}
     )
 
     condense_question_llm = Bedrock(
-        model_id="anthropic.claude-instant-v1",
+        model_id="anthropic.claude-3-5-haiku-20241022-v1:0",
         endpoint_url="https://bedrock-runtime." + REGION_NAME + ".amazonaws.com",
-        model_kwargs={"temperature": 0.7, "max_tokens_to_sample": 300}
+        model_kwargs={"temperature": 0.7, "max_tokens_to_sample": 4096}
     )
 else:
     llm = Bedrock(
